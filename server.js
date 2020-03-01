@@ -10,10 +10,11 @@ var express = require('express'); // Express web server framework
 var request = require('request'); // "Request" library
 var querystring = require('querystring');
 var cookieParser = require('cookie-parser');
+const cors = require('cors');
 
 var client_id = '2381d137c4a247f29eb8eddcbe4bf7c9'; // Your client id
 var client_secret = 'c792d4edf5ed43ce91c45f83dec5a594'; // Your secret
-var redirect_uri = 'http://localhost:8888/callback'; // Or Your redirect uri
+var redirect_uri = 'http://localhost:8000/callback'; // Or Your redirect uri
 
 /**
  * Generates a random string containing numbers and letters
@@ -42,7 +43,7 @@ app.get('/login', function(req, res) {
   var state = generateRandomString(16);
   res.cookie(stateKey, state);
 
-  // your application requests authorization
+  // Authorization request codes
   var scope =
     "user-read-private user-read-email user-read-playback-state \
   streaming user-read-private user-modify-playback-state";
@@ -58,7 +59,7 @@ app.get('/login', function(req, res) {
 
 app.get('/callback', function(req, res) {
 
-  // your application requests refresh and access tokens
+  // to request refresh and access tokens
   // after checking the state parameter
 
   var code = req.query.code || null;
@@ -102,7 +103,7 @@ app.get('/callback', function(req, res) {
           console.log(body);
         });
 
-        // we can also pass the token to the browser to make requests from there
+        // pass the token to the browser to make requests from there
         res.redirect('http://localhost:3000/#' +
           querystring.stringify({
             access_token: access_token,
@@ -142,5 +143,24 @@ app.get('/refresh_token', function(req, res) {
   });
 });
 
-console.log('Listening on 8888');
-app.listen(8888);
+// Runs lyric matching
+app.get('/lyricsMatch', cors(), function(req, res) {
+  // Run python script with the string as input
+  // Use child_process.spawn method from  
+  // child_process module and assign it 
+  // to variable spawn 
+  var spawn = require("child_process").spawn; 
+
+  // Spawns a python child process with argument
+  var process = spawn('python3',["./test.py", 
+                          req.query.string] ); 
+
+  // Python script outputs a song track name that won
+  // the highest match
+  process.stdout.on('data', function(data) { 
+      res.send(data.toString()); 
+  } ) 
+});
+
+console.log('Listening on 8000');
+app.listen(8000);

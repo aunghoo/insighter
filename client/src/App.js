@@ -26,7 +26,8 @@ class App extends Component {
       searchResults: [],
       currentTrack: "",
       searchLyrics: "",
-      searchLyricsResults: []
+      searchLyricsResults: [],
+      bestMatchSong: ""
     };
 
     // Method repeatedly checks until the SDK is ready
@@ -251,37 +252,32 @@ class App extends Component {
   }
 
   submitSearchLyrics(e) {
-    let lyricsSearchText = 'hey jude';
-    axios
-      .get(
-        `https://cors-anywhere.herokuapp.com/http://api.musixmatch.com/ws/1.1/track.search?q_lyrics=${lyricsSearchText}&apikey=b312d20523006d0a2dae3898ae8298b7`
-      )
-      .then(res => {
-        console.log("Results", res.data.message.body.track_list);
+    // let lyricsSearchText = 'hey jude';
+    // axios
+    //   .get(
+    //     `https://cors-anywhere.herokuapp.com/http://api.musixmatch.com/ws/1.1/track.search?page_size=2000&q_lyrics=${lyricsSearchText}&apikey=b312d20523006d0a2dae3898ae8298b7`
+    //   )
+    //   .then(res => {
+    //     console.log("Results", res.data.message.body.track_list);
         
-      })
-      .catch(err => console.log(err));
+    //   })
+    //   .catch(err => console.log(err));
+    const { searchLyrics } = this.state;
 
+    axios.get(
+      `http://localhost:8000/lyricsMatch?string=${searchLyrics}`
+    ).then(res => {
+      console.log("Song name", res.data);
+      this.setState({
+        bestMatchSong: res.data
+      });
+    }).catch(err => console.log(err));
 
-    // const { searchLyrics } = this.state;
-    // fetch("https://api.musixmatch.com/ws/1.1/track.search?q_lyrics=what&apikey=b312d20523006d0a2dae3898ae8298b7", {
-    // })
-    // .then((response) => {
-    //   if (!response.ok) throw Error(response.statusText);
-    //   // console.log("nice");
-    //   return response.json();
-    // })
-    // .then((data) => {
-    //   console.log("Search Track by Lyrics Data:", data);
-    //   // this.setState({
-    //   //   displayResults: true,
-    //   //   searchResults: data
-    //   // });
-    // })
-    // .catch((error) => console.log(error, 'ERROR CAUGHT IN APP.JS - Search'));
 
     e.preventDefault();
   }
+
+
 
 
   render() {
@@ -299,7 +295,8 @@ class App extends Component {
       displayResults,
       searchResults,
       searchLyrics,
-      searchLyricsResults
+      searchLyricsResults,
+      bestMatchSong
     } = this.state;
   
     return (
@@ -315,10 +312,12 @@ class App extends Component {
         (<div>
           <button onClick={() => this.handleLogin()}>Get Player Ready</button>
           <p>Song Selected: {this.state.currentTrack ? this.state.currentTrack.name : (<span>None</span>)}</p>
-          <button onClick={() => this.viewDevices()}>Devices</button>
+          {/* <button onClick={() => this.viewDevices()}>Devices</button> */}
           <button onClick={() => this.playTheSong()}>Play Selected</button>
           
-          {/* Search a song */}
+          <hr />
+          {/* Search a song to play */}
+          <h4>Search song to play</h4>
           <p>
             <input type="text" value={searchText} onChange={e => this.setState({ searchText: e.target.value })} />
           </p>
@@ -331,7 +330,20 @@ class App extends Component {
                 </li>
               ))}
             </ul>
+          
+          <hr />
 
+          {/* Search the top-matching tracks based on lyrical content similarity */}
+          <h4>Search Best match song by lyrics</h4>
+          <p>
+            <input type="text" value={searchLyrics} onChange={e => this.setState({ searchLyrics: e.target.value })} />
+          </p>
+          <button onClick={this.submitSearchLyrics}>Search</button>
+          
+          {bestMatchSong && (
+            <p><strong>Best Match Song: </strong>{bestMatchSong}</p>
+          )}
+          <hr />
           {/* {this.state.displayResults && (
             <ul>
               {searchResults.map((song) => (
@@ -368,12 +380,12 @@ class App extends Component {
           </p> */}
 
           {/* From auth app */}
-          <a href='http://localhost:8888' > Login to Spotify </a>
-          
+          <a href='http://localhost:8000' > Login to Spotify </a>
+
           {/* Lyrics Search functionality */}
 
           {/* Search a song by lyrics */}
-          <p>
+          {/* <p>
             <input type="text" value={searchLyrics} onChange={e => this.setState({ searchLyrics: e.target.value })} />
           </p>
           <button onClick={this.submitSearchLyrics}>Search Lyrics</button>
@@ -383,7 +395,7 @@ class App extends Component {
                 {song}
               </li>
             ))}
-          </ul>
+          </ul> */}
 
 
         </div>)}
