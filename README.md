@@ -1,3 +1,5 @@
+Built for HackIllinois 2020 Challenge
+
 Steps to run the app:
 
 Needs 2 terminal tabs
