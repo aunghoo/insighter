@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import logo from './logo.svg';
 import './App.css';
+import axios from "axios";
 
 class App extends Component {
   constructor(props) {
@@ -23,7 +24,9 @@ class App extends Component {
       searchText: "",
       displayResults: false,
       searchResults: [],
-      currentTrack: ""
+      currentTrack: "",
+      searchLyrics: "",
+      searchLyricsResults: []
     };
 
     // Method repeatedly checks until the SDK is ready
@@ -32,6 +35,7 @@ class App extends Component {
     this.viewDevices = this.viewDevices.bind(this);
     this.submitSearch = this.submitSearch.bind(this);
     this.playTheSong = this.playTheSong.bind(this);
+    this.submitSearchLyrics = this.submitSearchLyrics.bind(this);
   }
 
   // Extract the token from the URL string
@@ -200,7 +204,7 @@ class App extends Component {
   checkForPlayer() {
     const { token } = this.state;
 
-    if (window.Spotify !== null) {
+    if (window.Spotify !== null && !this.player) {
       // cancel the interval that we were checking the player for
       clearInterval(this.playerCheckInterval);
 
@@ -246,6 +250,39 @@ class App extends Component {
     e.preventDefault();
   }
 
+  submitSearchLyrics(e) {
+    let lyricsSearchText = 'hey jude';
+    axios
+      .get(
+        `https://cors-anywhere.herokuapp.com/http://api.musixmatch.com/ws/1.1/track.search?q_lyrics=${lyricsSearchText}&apikey=b312d20523006d0a2dae3898ae8298b7`
+      )
+      .then(res => {
+        console.log("Results", res.data.message.body.track_list);
+        
+      })
+      .catch(err => console.log(err));
+
+
+    // const { searchLyrics } = this.state;
+    // fetch("https://api.musixmatch.com/ws/1.1/track.search?q_lyrics=what&apikey=b312d20523006d0a2dae3898ae8298b7", {
+    // })
+    // .then((response) => {
+    //   if (!response.ok) throw Error(response.statusText);
+    //   // console.log("nice");
+    //   return response.json();
+    // })
+    // .then((data) => {
+    //   console.log("Search Track by Lyrics Data:", data);
+    //   // this.setState({
+    //   //   displayResults: true,
+    //   //   searchResults: data
+    //   // });
+    // })
+    // .catch((error) => console.log(error, 'ERROR CAUGHT IN APP.JS - Search'));
+
+    e.preventDefault();
+  }
+
 
   render() {
     const { 
@@ -260,7 +297,9 @@ class App extends Component {
       playing,
       searchText,
       displayResults,
-      searchResults
+      searchResults,
+      searchLyrics,
+      searchLyricsResults
     } = this.state;
   
     return (
@@ -331,6 +370,20 @@ class App extends Component {
           {/* From auth app */}
           <a href='http://localhost:8888' > Login to Spotify </a>
           
+          {/* Lyrics Search functionality */}
+
+          {/* Search a song by lyrics */}
+          <p>
+            <input type="text" value={searchLyrics} onChange={e => this.setState({ searchLyrics: e.target.value })} />
+          </p>
+          <button onClick={this.submitSearchLyrics}>Search Lyrics</button>
+          <ul className='list-group'>
+            {searchLyricsResults.slice(0,10).map((song) => (
+              <li className='list-group-item'>
+                {song}
+              </li>
+            ))}
+          </ul>
 
 
         </div>)}
